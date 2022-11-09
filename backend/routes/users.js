@@ -35,9 +35,45 @@ router.delete("/:id", async(req, res) =>{
             res.send("User has been deleted")
         } catch (error) {
             res.send("you can delete only your account")
-        }}
-    
+        }}    
 })
+
+//get a user by id
+router.get("/:id", async(req, res) =>{
+    try {
+        const user = await User.findById(req.params.id)
+        const {password, updatedAt, ...other} = user._doc
+        res.send(other)
+    } catch (error) {
+    res.send("user not found")
+    }}
+)
+
+//follow a user
+router.put("/:id/follow", async(req,res) => {
+  if(req.body.userId !== req.params.id){
+    try {
+      const user = await User.findById(req.params.id);
+      const currentUser = await User.findById(req.body.userId)
+      if(!user.followers.includes(req.body.userId))
+          {
+            await User.updateOne({$push: {followers: req.body.userId}})
+            await currentUser.updateOne({$push:{followings:req.params.id}})
+          res.send("user has been followed")
+          }  else{
+            res.send("you are already following this user")
+          }
+              
+    } catch (error) {
+    res.send(error)
+    }
+  
+  } else {
+    res.send("You can't follow yourself")
+  }
+  }
+)
+
 
 
 export default router;
